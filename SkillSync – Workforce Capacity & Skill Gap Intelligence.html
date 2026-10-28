@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>SkillSync – Workforce Capacity &amp; Skill Gap Intelligence</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root{--bg:#f6f7fb;--card:#fff;--tx:#1b2030;--mu:#667;--ac:#0e7490;--g:#15803d;--r:#b91c1c;--bd:#e3e6ef;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12141c;--card:#1b1f2b;--tx:#e8eaf3;--mu:#9aa1b5;--ac:#22d3ee;--g:#4ade80;--r:#f87171;--bd:#2b3142;color-scheme:dark}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;padding:16px}
+.w{max-width:1000px;margin:auto}h1{margin:0;font-size:24px}.sub{color:var(--mu);margin:2px 0 14px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:14px}
+h2{font-size:16px;margin:0 0 8px}.kp{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.k{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px 12px}.k b{display:block;font-size:20px}.k span{color:var(--mu);font-size:12px}
+.sc{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:560px;font-size:13px}th,td{padding:6px 8px;border-bottom:1px solid var(--bd);text-align:right}th:first-child,td:first-child,.l{text-align:left}th{color:var(--mu);font-weight:600}
+.hm td{text-align:center;padding:5px 0;min-width:34px;border:2px solid var(--card)}
+select,input[type=text]{padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit}input[type=text]{flex:1;min-width:160px}
+button{background:var(--ac);color:#fff;border:0;border-radius:8px;padding:8px 14px;font:inherit;cursor:pointer}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.ag p{margin:6px 0;padding:8px 10px;border-radius:8px;background:var(--bg);border-left:3px solid var(--ac)}
+.tag{padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600}.H{background:#fee2e2;color:#991b1b}.M{background:#fef3c7;color:#92400e}.Lw{background:#dcfce7;color:#166534}
+.g{color:var(--g)}.r{color:var(--r)}small{color:var(--mu)}
+</style></head><body><div class="w">
+<h1>SkillSync</h1>
+<div class="sub">Workforce capacity and skill gap intelligence · Demo company: TCS-style delivery unit · 60 employees, 5 projects, 12 weeks (synthetic)</div>
+<div class="kp" id="kp"></div>
+
+<div class="card"><div class="row" style="justify-content:space-between"><h2 style="margin:0">1 · Weekly unfilled skill demand (FTE)</h2>
+<label><small>View </small><select id="vw"><option value="b">Current workforce</option><option value="a">After recommended plan</option></select></label></div>
+<div class="sc" style="margin-top:8px"><table class="hm" id="hm"></table></div><small>Red cells = project work that has no qualified, free person that week. Blank = fully staffed.</small></div>
+
+<div class="card"><h2>2 · Skill supply vs demand</h2><div class="sc"><table id="sk"></table></div></div>
+
+<div class="card"><h2>3 · Recommended actions: internal allocation, training, hiring</h2><div class="sc"><table id="rc"></table></div><div id="rs" style="margin-top:6px"></div></div>
+
+<div class="card"><h2>4 · Project delivery risk</h2><div class="sc"><table id="pj"></table></div></div>
+
+<div class="card ag"><h2>5 · SkillSync AI agent</h2><div id="ag"></div>
+<div class="row" style="margin-top:8px"><input type="text" id="q" placeholder="Ask: which skills are short? train or hire? which project is at risk?"><button id="ask">Ask</button></div><div id="ans"></div></div>
+
+<div class="card"><h2>How it works (algorithm)</h2><small>1) Integrate skill profiles (proficiency 1–5), project plans, allocations, LMS and hiring data → 2) Forecast demand per skill per week from project requirements → 3) Match supply: an employee counts only if qualified (level ≥ 3) and free → 4) Allocate scarcest skills first, using the least versatile qualified people and project priority (greedy assignment; Hungarian/min-cost flow in production) → 5) Gap = demand − staffed, per skill and week → 6) Close gaps in order of cost and lead time: (a) internal reallocation, (b) train idle adjacent-skill employees (level 2 → 3, 4 weeks), (c) contract hire (3 weeks) for short gaps, (d) permanent hire (8 weeks) for long gaps → 7) Re-run the allocation to verify the plan and the reduction in delivery risk.</small></div>
+</div>
+<script>
+function rng(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const R=rng(9),WK=12,S=["Cloud","Data Eng","ML/AI","Cybersecurity","DevOps","Java","React","QA Automation"];
+const AJ={"Java":["Cloud","DevOps","Data Eng"],"QA Automation":["DevOps","Java"],"React":["Java","QA Automation"],"Data Eng":["ML/AI","Cloud","Java"],"DevOps":["Cloud","Cybersecurity"],"Cloud":["DevOps","Data Eng","Cybersecurity"],"ML/AI":["Data Eng"],"Cybersecurity":["Cloud","DevOps"]};
+const PC={"Java":14,"React":9,"QA Automation":10,"Data Eng":7,"DevOps":6,"Cloud":6,"ML/AI":4,"Cybersecurity":4};
+const E=[];let n=1;for(const s in PC)for(let i=0;i<PC[s];i++){const lv={};lv[s]=3+Math.floor(R()*3);const sc=Math.floor(R()*3);const ad=AJ[s].slice().sort(()=>R()-.5).slice(0,sc);ad.forEach(a=>lv[a]=R()<.1?3:R()<.85?2:4);E.push({id:"EMP-"+(300+n++),prim:s,lv,tr:{},from:1})}
+const P=[{id:"P4",n:"Telecom Portal Revamp",dl:8,s:1,e:8,req:{"React":3,"Java":3,"QA Automation":1,"DevOps":1}},
+{id:"P1",n:"Banking Cloud Migration",dl:10,s:1,e:10,req:{"Cloud":7,"DevOps":3,"Java":1,"QA Automation":1,"Cybersecurity":2}},
+{id:"P2",n:"Retail Data Platform",dl:12,s:3,e:12,req:{"Data Eng":9,"Cloud":1,"ML/AI":3,"React":1,"QA Automation":1}},
+{id:"P3",n:"Insurance Claims AI",dl:12,s:4,e:12,req:{"ML/AI":5,"Data Eng":2,"Java":1,"Cybersecurity":2,"React":1}},
+{id:"P5",n:"Security Compliance Program",dl:12,s:6,e:12,req:{"Cybersecurity":4,"DevOps":2,"Cloud":2}}];
+const qual=(e,s,w)=>w>=e.from&&((e.lv[s]||0)>=3||(e.tr[s]&&w>=e.tr[s]));
+function alloc(EM){const gap={},free={},pf={},pr={},idle={};S.forEach(s=>{gap[s]=Array(WK+1).fill(0);free[s]=Array(WK+1).fill(0)});P.forEach(p=>{pf[p.id]=0;pr[p.id]=0});EM.forEach(e=>idle[e.id]=0);const dem=Array(WK+1).fill(0);
+ for(let w=1;w<=WK;w++){const fr=new Set(EM.filter(e=>w>=e.from));const act=P.filter(p=>w>=p.s&&w<=p.e);const D={};act.forEach(p=>{for(const s in p.req){D[s]=(D[s]||0)+p.req[s];dem[w]+=p.req[s]}});
+  const ord=Object.keys(D).sort((a,b)=>[...fr].filter(e=>qual(e,a,w)).length/D[a]-[...fr].filter(e=>qual(e,b,w)).length/D[b]);
+  const nq=e=>S.filter(s=>qual(e,s,w)).length;
+  ord.forEach(s=>act.forEach(p=>{const need=p.req[s]||0;if(!need)return;const c=[...fr].filter(e=>qual(e,s,w)).sort((a,b)=>nq(a)-nq(b)||(b.lv[s]||4)-(a.lv[s]||4)).slice(0,need);c.forEach(e=>fr.delete(e));pr[p.id]+=need;pf[p.id]+=c.length;gap[s][w]+=need-c.length}));
+  S.forEach(s=>free[s][w]=[...fr].filter(e=>qual(e,s,w)).length);fr.forEach(e=>idle[e.id]++)}
+ return{gap,free,pf,pr,idle,dem}}
+const B=alloc(E);
+const sumG=A=>S.reduce((t,s)=>t+A.gap[s].reduce((a,b)=>a+b,0),0);
+const PLAN=[];const cl=E.map(e=>({...e,tr:{}})),HR=[];let tc=0;
+S.forEach(s=>{const g=B.gap[s],tot=g.reduce((a,b)=>a+b,0);if(!tot)return;const pk=Math.max(...g),fw=g.findIndex((v,i)=>i&&v>0),dur=g.filter(v=>v>0).length;
+ const cand=cl.filter(e=>(e.lv[s]||0)==2&&B.idle[e.id]>=4).sort((a,b)=>B.idle[b.id]-B.idle[a.id]),tn=Math.min(cand.length,pk);cand.slice(0,tn).forEach(e=>e.tr[s]=5);
+ const rem=pk-tn,type=dur<=8?"Contract":"Permanent",from=type=="Contract"?4:9;for(let i=0;i<rem;i++)HR.push({id:"HIRE-"+s+i,prim:s,lv:{[s]:4},tr:{},from});
+ const cost=tn*.5+rem*(type=="Contract"?3:2);tc+=cost;PLAN.push({s,pk,fw,dur,tot,tn,rem,type,from,cost})});
+const A=alloc([...cl,...HR]);
+const f=(v,d=0)=>v.toLocaleString("en-IN",{maximumFractionDigits:d,minimumFractionDigits:d});
+const risk=(p,X)=>{const r=X.pf[p.id]/X.pr[p.id];return r<.85?"H":r<.95?"M":"Lw"},RN={H:"High",M:"Medium",Lw:"Low"};
+function view(){const X=document.getElementById("vw").value=="a"?A:B,pk=Math.max(...B.dem);
+ document.getElementById("kp").innerHTML=[["Headcount",E.length],["Peak demand",pk+" FTE ("+f(pk/E.length*100)+"%)"],["Unfilled FTE-weeks",sumG(X)],["Projects at risk",P.filter(p=>risk(p,X)!="Lw").length+" of "+P.length],["Plan cost","₹"+f(tc,1)+" L"]].map(a=>`<div class="k"><span>${a[0]}</span><b>${a[1]}</b></div>`).join("");
+ document.getElementById("hm").innerHTML="<tr><th></th>"+Array.from({length:WK},(_,i)=>`<th style="text-align:center">W${i+1}</th>`).join("")+"</tr>"+S.map(s=>`<tr><td>${s}</td>`+Array.from({length:WK},(_,i)=>{const g=X.gap[s][i+1];return`<td style="${g?`background:rgba(220,38,38,${Math.min(.2+g*.2,.9)});color:#fff;font-weight:600`:""}">${g||""}</td>`}).join("")+"</tr>").join("");
+ document.getElementById("pj").innerHTML="<tr><th>Project</th><th>Deadline</th><th>Staffed (now)</th><th>Risk (now)</th><th>Staffed (after plan)</th><th>Risk (after plan)</th></tr>"+P.map(p=>`<tr><td>${p.n}</td><td>W${p.dl}</td><td>${f(B.pf[p.id]/B.pr[p.id]*100)}%</td><td><span class="tag ${risk(p,B)}">${RN[risk(p,B)]}</span></td><td>${f(A.pf[p.id]/A.pr[p.id]*100)}%</td><td><span class="tag ${risk(p,A)}">${RN[risk(p,A)]}</span></td></tr>`).join("")}
+function stat(){document.getElementById("sk").innerHTML="<tr><th>Skill</th><th>Qualified staff</th><th>Peak demand</th><th>Peak gap</th><th>Gap FTE-weeks</th><th>Avg qualified but idle</th></tr>"+S.map(s=>{const q=E.filter(e=>(e.lv[s]||0)>=3).length,pd=Math.max(...P.map(p=>p.req[s]||0).map((_,i)=>0),...Array.from({length:WK},(_,w)=>P.filter(p=>w+1>=p.s&&w+1<=p.e).reduce((t,p)=>t+(p.req[s]||0),0))),pg=Math.max(...B.gap[s]),gw=B.gap[s].reduce((a,b)=>a+b,0),fi=B.free[s].slice(1).reduce((a,b)=>a+b,0)/WK;return`<tr><td>${s}</td><td>${q}</td><td>${pd}</td><td class="${pg?"r":""}">${pg||"–"}</td><td class="${gw?"r":""}">${gw||"–"}</td><td class="${fi>=3?"g":""}">${f(fi,1)}</td></tr>`}).join("");
+ document.getElementById("rc").innerHTML="<tr><th>Skill gap</th><th>Peak gap (FTE)</th><th>First gap</th><th>Weeks short</th><th>Train internally</th><th>Hire</th><th>Cost (₹L)</th></tr>"+PLAN.map(p=>`<tr><td>${p.s}</td><td>${p.pk}</td><td>W${p.fw}</td><td>${p.dur}</td><td>${p.tn?p.tn+" idle staff (4 wks)":"–"}</td><td>${p.rem?p.rem+" "+p.type.toLowerCase()+" (from W"+p.from+")":"–"}</td><td>${f(p.cost,1)}</td></tr>`).join("");
+ document.getElementById("rs").innerHTML=`<small>Idle staff already hold level-2 skills adjacent to the gap, so training costs about ₹0.5 L each against ₹2–3 L to hire. Re-running the allocation cuts unfilled demand from ${sumG(B)} to ${sumG(A)} FTE-weeks.</small>`}
+function agent(){const w=[...PLAN].sort((a,b)=>b.tot-a.tot),sur=S.map(s=>[s,B.free[s].slice(1).reduce((a,b)=>a+b,0)/WK]).sort((a,b)=>b[1]-a[1]);
+ document.getElementById("ag").innerHTML=`<p><b>Paper vs reality:</b> ${E.length} employees cover a peak demand of ${Math.max(...B.dem)} FTE, yet ${sumG(B)} FTE-weeks of project work are unstaffed. The problem is skill mismatch, not headcount.</p><p><b>Critical gaps:</b> ${w.slice(0,3).map(p=>`${p.s} (${p.tot} FTE-weeks, from W${p.fw})`).join(", ")}. Meanwhile ${sur.slice(0,3).map(x=>x[0]+" ("+f(x[1],1)+" idle)").join(", ")} have spare qualified capacity.</p><p><b>Plan:</b> cross-train idle adjacent-skill staff first, use contract hires for short gaps and permanent hires for long ones. Cost ₹${f(tc,1)} L; unfilled demand falls from ${sumG(B)} to ${sumG(A)} FTE-weeks.</p>`}
+function ans(t){t=t.toLowerCase();
+ if(/short|gap|critical|missing/.test(t))return PLAN.map(p=>`${p.s}: peak gap ${p.pk}, ${p.tot} FTE-weeks from W${p.fw}`).join(" | ")+".";
+ if(/train|hire|recruit|plan|recommend/.test(t))return PLAN.map(p=>`${p.s}: ${p.tn?"train "+p.tn:""}${p.tn&&p.rem?" + ":""}${p.rem?"hire "+p.rem+" "+p.type.toLowerCase():""}`).join(" | ")+". Total ₹"+f(tc,1)+" L.";
+ if(/project|deadline|risk|late/.test(t))return P.map(p=>`${p.n}: ${RN[risk(p,B)]} now, ${RN[risk(p,A)]} after plan`).join(" | ")+".";
+ if(/idle|surplus|spare|allocat|bench/.test(t))return S.map(s=>[s,B.free[s].slice(1).reduce((a,b)=>a+b,0)/WK]).sort((a,b)=>b[1]-a[1]).slice(0,4).map(x=>`${x[0]} ${f(x[1],1)} idle on average`).join(", ")+". Reallocate or cross-train them toward short skills.";
+ if(/cost|budget|money/.test(t))return `The plan costs ₹${f(tc,1)} L in total.`;
+ return "Try asking which skills are short, whether to train or hire, which projects are at risk, or where idle capacity sits."}
+document.getElementById("vw").onchange=view;
+const go=()=>{const q=document.getElementById("q");document.getElementById("ans").innerHTML=`<p><b>Q:</b> ${q.value.replace(/</g,"&lt;")}<br>${ans(q.value)}</p>`};
+document.getElementById("ask").onclick=go;document.getElementById("q").onkeydown=e=>{if(e.key=="Enter")go()};
+view();stat();agent();
+</script></body></html>
